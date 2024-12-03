@@ -2,38 +2,141 @@ import { PALABRAS, obtenerPalabraAleatoria, existePalabra } from './palabras.js'
 import { calcularProbabilidades, calcularInformacion, calcularEntropia } from './calculos.js';
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Variables para el tema
+    // Variables initialization
     const themeToggle = document.querySelector('.theme-toggle');
     const themeIcon = themeToggle.querySelector('i');
-
-    // Variables para el input y tablero
     const input = document.querySelector('.palabra-input');
     const borrarBtn = document.querySelector('#borrar-btn');
     const confirmarBtn = document.querySelector('#confirmar-btn');
     const filas = document.querySelectorAll('.tablero-row');
     let filaActual = 0;
-
-    // Palabra objetivo que el jugador debe adivinar
     let palabraObjetivo = obtenerPalabraAleatoria();
-    console.log('Palabra a adivinar:', palabraObjetivo); // Para testing
+    let probabilityChart = null;
 
-    // Función para reiniciar el juego
-    function reiniciarJuego() {
-        // Obtener nueva palabra objetivo
-        palabraObjetivo = obtenerPalabraAleatoria();
-        console.log('Nueva palabra a adivinar:', palabraObjetivo);
+    // Initialize game
+    console.log('Palabra a adivinar:', palabraObjetivo);
+    initializeChart();
+    loadSavedTheme();
+
+    // Event Listeners
+    input.addEventListener('input', function() {
+        this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '');
+        confirmarBtn.disabled = this.value.length !== 5;
+        this.classList.remove('is-invalid');
+    });
+
+    input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && this.value.length === 5) {
+            confirmarBtn.click();
+        } else if (e.key === 'Escape') {
+            borrarBtn.click();
+        }
+    });
+
+    borrarBtn.addEventListener('click', function() {
+        input.value = '';
+        input.classList.remove('is-invalid');
+        confirmarBtn.disabled = true;
+        document.querySelector('.invalid-feedback').style.display = 'none';
+        input.focus();
+    });
+
+    confirmarBtn.addEventListener('click', function() {
+        const palabra = input.value.toUpperCase();
         
-        // Reiniciar fila actual
+        if (palabra.length !== 5 || !existePalabra(palabra)) {
+            input.classList.add('is-invalid');
+            document.querySelector('.invalid-feedback').style.display = 'block';
+            return;
+        }
+
+        const resultado = procesarIntento(palabra);
+        if (!resultado) return;
+
+        const palabrasCoincidentes = obtenerPalabrasCoincidentes(
+            resultado.letrasCorrectas,
+            resultado.letrasPresentes,
+            palabra,
+            resultado.letrasIncorrectas
+        );
+
+        document.getElementById('palabras-coincidentes').textContent = palabrasCoincidentes.length;
+        actualizarEstadisticas(palabrasCoincidentes);
+
+        input.value = '';
+        input.classList.remove('is-invalid');
+        confirmarBtn.disabled = true;
+        
+        if (resultado.esGanador || resultado.esFinal) {
+            finalizarJuego(resultado.esGanador);
+        } else {
+            input.focus();
+        }
+    });
+
+    themeToggle.addEventListener('click', function() {
+        const body = document.body;
+        const currentTheme = body.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        
+        body.setAttribute('data-theme', newTheme);
+        themeIcon.classList.toggle('fa-moon');
+        themeIcon.classList.toggle('fa-sun');
+        
+        updateChartTheme();
+        localStorage.setItem('theme', newTheme);
+    });
+
+    // Theme functions
+    function loadSavedTheme() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.body.setAttribute('data-theme', savedTheme);
+        
+        if (savedTheme === 'dark') {
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
+            updateChartTheme();
+        }
+    }
+
+    function updateChartTheme() {
+        if (!probabilityChart) return;
+        
+        const colors = getChartThemeColors();
+        
+        probabilityChart.options.scales.y.grid.color = colors.gridColor;
+        probabilityChart.options.scales.x.grid.color = colors.gridColor;
+        probabilityChart.options.scales.y.ticks.color = colors.textColor;
+        probabilityChart.options.scales.x.ticks.color = colors.textColor;
+        probabilityChart.options.plugins.legend.labels.color = colors.textColor;
+        probabilityChart.data.datasets[0].backgroundColor = colors.backgroundColor;
+        probabilityChart.data.datasets[0].borderColor = colors.borderColor;
+        
+        probabilityChart.update();
+    }
+
+    function getChartThemeColors() {
+        const isDark = document.body.getAttribute('data-theme') === 'dark';
+        return {
+            backgroundColor: isDark ? 'rgba(106, 170, 100, 0.3)' : 'rgba(106, 170, 100, 0.5)',
+            borderColor: isDark ? 'rgba(106, 170, 100, 0.8)' : 'rgba(106, 170, 100, 1)',
+            gridColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+            textColor: isDark ? '#ffffff' : '#000000',
+            hoverColor: isDark ? 'rgba(106, 170, 100, 0.5)' : 'rgba(106, 170, 100, 0.7)'
+        };
+    }
+
+    // Game functions
+    function reiniciarJuego() {
+        palabraObjetivo = obtenerPalabraAleatoria();
         filaActual = 0;
         
-        // Habilitar controles
         input.disabled = false;
         confirmarBtn.disabled = true;
         borrarBtn.disabled = false;
         input.value = '';
         input.classList.remove('is-invalid');
         
-        // Limpiar todas las celdas
         filas.forEach(fila => {
             const celdas = fila.querySelectorAll('.tablero-celda');
             celdas.forEach(celda => {
@@ -42,97 +145,84 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Ocultar palabra correcta
         document.querySelector('.palabra-correcta-container').style.display = 'none';
         document.getElementById('palabra-correcta').textContent = '';
-
-        // Limpiar estadísticas
+        document.getElementById('palabras-coincidentes').textContent = '0';
+        
         ['probabilidades-container', 'informacion-container', 'entropia-container'].forEach(id => {
             document.getElementById(id).innerHTML = '';
         });
-
-        // Ocultar mensaje de error si está visible
-        document.querySelector('.invalid-feedback').style.display = 'none';
-
-        // Enfocar el input
-        input.focus();
-
-        // Reset chart
+        
+        const probTable = document.getElementById('letra-prob-table').getElementsByTagName('tbody')[0];
+        probTable.innerHTML = '';
+        
         if (probabilityChart) {
             probabilityChart.data.labels = [];
             probabilityChart.data.datasets[0].data = [];
             probabilityChart.update();
         }
+        
+        console.log('Nueva palabra a adivinar:', palabraObjetivo);
+        input.focus();
     }
 
-    // Función para cambiar el tema
-    themeToggle.addEventListener('click', function() {
-        const body = document.body;
-        const currentTheme = body.getAttribute('data-theme');
-        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-        body.setAttribute('data-theme', newTheme);
+    // Initialize chart on load
+    function initializeChart() {
+        const ctx = document.getElementById('probabilityChart').getContext('2d');
+        const colors = getChartThemeColors();
         
-        // Cambiar el ícono
-        if (newTheme === 'dark') {
-            themeIcon.classList.remove('fa-moon');
-            themeIcon.classList.add('fa-sun');
-        } else {
-            themeIcon.classList.remove('fa-sun');
-            themeIcon.classList.add('fa-moon');
-        }
-        
-        // Guardar en localStorage
-        localStorage.setItem('theme', newTheme);
-    });
-
-    // Cargar tema guardado
-    window.addEventListener('load', () => {
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.body.setAttribute('data-theme', savedTheme);
-        
-        if (savedTheme === 'dark') {
-            themeIcon.classList.remove('fa-moon');
-            themeIcon.classList.add('fa-sun');
-        }
-    });
-
-    // Validación del input
-    input.addEventListener('input', function() {
-        // Convertir a mayúsculas
-        this.value = this.value.toUpperCase();
-        
-        // Solo permitir letras
-        this.value = this.value.replace(/[^A-Z]/g, '');
-        
-        // Validar longitud
-        if (this.value.length === 5) {
-            this.classList.remove('is-invalid');
-            confirmarBtn.disabled = false;
-        } else {
-            confirmarBtn.disabled = true;
-        }
-    });
-
-    // Modificar el event listener del input para el Enter
-    input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault(); // Prevenir el comportamiento por defecto
-            if (this.value.length === 5) {
-                confirmarBtn.click();
+        probabilityChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Probabilidad por palabra (%)',
+                    data: [],
+                    backgroundColor: colors.backgroundColor,
+                    borderColor: colors.borderColor,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 500 },
+                indexAxis: 'y',  // Make horizontal bar chart
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 1,
+                        ticks: {
+                            callback: value => `${(value * 100).toFixed(1)}%`,
+                            color: colors.textColor
+                        },
+                        grid: {
+                            color: colors.gridColor
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            color: colors.textColor
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: colors.textColor
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                return `Probabilidad: ${(context.raw * 100).toFixed(2)}%`;
+                            }
+                        }
+                    }
+                }
             }
-        } else if (e.key === 'Escape') { // Opcional: agregar tecla Escape para borrar
-            borrarBtn.click();
-        }
-    });
-
-    // Función para borrar input
-    borrarBtn.addEventListener('click', function() {
-        input.value = '';
-        input.classList.remove('is-invalid');
-        confirmarBtn.disabled = true;
-        document.querySelector('.invalid-feedback').style.display = 'none';
-        input.focus(); // Mantener el foco en el input
-    });
+        });
+    }
 
     // Modificar la función de obtener palabras coincidentes
     function obtenerPalabrasCoincidentes(letrasCorrectas, letrasPresentes, palabraIntentada, letrasIncorrectas) {
@@ -195,12 +285,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function actualizarEstadisticas(palabrasCoincidentes) {
         const resultados = calcularProbabilidades(palabrasCoincidentes);
         
-        // Update display containers
         actualizarProbabilidades(resultados.porPalabra);
         actualizarInformacion(resultados.porPosicion);
         actualizarEntropia(resultados.porPosicion);
-        
-        // Update chart
+        actualizarTablaProbabilidades(resultados.porPosicion);
         updateChart(resultados.porPalabra);
     }
     
@@ -291,72 +379,6 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    confirmarBtn.addEventListener('click', function() {
-        const palabra = input.value.toUpperCase();
-        
-        // Validate input
-        if (palabra.length !== 5 || !existePalabra(palabra)) {
-            input.classList.add('is-invalid');
-            document.querySelector('.invalid-feedback').style.display = 'block';
-            return;
-        }
-
-        // Process attempt
-        const resultado = procesarIntento(palabra);
-        if (!resultado) return;
-
-        // Update stats
-        const palabrasCoincidentes = obtenerPalabrasCoincidentes(
-            resultado.letrasCorrectas,
-            resultado.letrasPresentes,
-            palabra,
-            resultado.letrasIncorrectas
-        );
-
-        // Update UI
-        document.getElementById('palabras-coincidentes').textContent = palabrasCoincidentes.length;
-        actualizarEstadisticas(palabrasCoincidentes);
-
-        // Clear input
-        input.value = '';
-        input.classList.remove('is-invalid');
-        confirmarBtn.disabled = true;
-        
-        // Handle game end conditions
-        if (resultado.esGanador) {
-            setTimeout(() => {
-                alert('¡Felicitaciones! ¡Has ganado!');
-                document.querySelector('.palabra-correcta-container').style.display = 'block';
-                document.getElementById('palabra-correcta').textContent = palabraObjetivo;
-                preguntarNuevaPartida();
-            }, 500);
-        } else if (resultado.esFinal) {
-            setTimeout(() => {
-                alert('¡Juego terminado! La palabra era: ' + palabraObjetivo);
-                document.querySelector('.palabra-correcta-container').style.display = 'block';
-                document.getElementById('palabra-correcta').textContent = palabraObjetivo;
-                preguntarNuevaPartida();
-            }, 500);
-        } else {
-            input.focus();
-        }
-    });
-
-    // Función auxiliar para mostrar palabras en ternas
-    function mostrarTernas(palabras) {
-        if (palabras.length === 0) {
-            return '<div class="no-coincidencias">No hay palabras coincidentes</div>';
-        }
-
-        let html = '<div class="ternas-container">';
-        for (let i = 0; i < palabras.length; i += 3) {
-            const terna = palabras.slice(i, i + 3);
-            html += `<div class="palabra-terna">${terna.join(' - ')}</div>`;
-        }
-        html += '</div>';
-        return html;
-    }
-
     // Nueva función para preguntar si quiere jugar de nuevo
     function preguntarNuevaPartida() {
         setTimeout(() => {
@@ -372,73 +394,75 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 100); // Pequeño delay para mejor UX
     }
 
-    let probabilityChart = null;
-
-    function initializeChart() {
-        const ctx = document.getElementById('probabilityChart').getContext('2d');
-        probabilityChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Probabilidad (%)',
-                    data: [],
-                    backgroundColor: 'rgba(106, 170, 100, 0.5)',
-                    borderColor: 'rgba(106, 170, 100, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: {
-                    duration: 500
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 1,
-                        ticks: {
-                            callback: value => `${(value * 100).toFixed(1)}%`,
-                            color: 'var(--text-color)'
-                        },
-                        grid: {
-                            color: 'var(--chart-grid-color)'
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            color: 'var(--text-color)',
-                            maxRotation: 45,
-                            minRotation: 45
-                        },
-                        grid: {
-                            color: 'var(--chart-grid-color)'
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: 'var(--text-color)'
-                        }
-                    }
-                }
-            }
+    function actualizarTablaProbabilidades(probabilidadesPorPosicion) {
+        const table = document.getElementById('letra-prob-table').getElementsByTagName('tbody')[0];
+        table.innerHTML = '';
+        
+        const letras = new Set();
+        probabilidadesPorPosicion.forEach(pos => {
+            Object.keys(pos).forEach(letra => letras.add(letra));
         });
+        
+        const letrasOrdenadas = Array.from(letras).sort();
+        
+        letrasOrdenadas.forEach(letra => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${letra}</td>`;
+            
+            for (let pos = 0; pos < 5; pos++) {
+                const prob = probabilidadesPorPosicion[pos][letra] || 0;
+                const width = Math.round(prob * 100);
+                row.innerHTML += `
+                    <td class="prob-cell">
+                        <div class="prob-value">${(prob * 100).toFixed(1)}%</div>
+                        <div class="prob-bar" style="width: ${width}%"></div>
+                    </td>
+                `;
+            }
+            
+            table.appendChild(row);
+        });
+    }
+
+    function finalizarJuego(ganador) {
+        const mensaje = ganador ? 
+            '¡Felicitaciones! ¡Has ganado!' : 
+            `¡Juego terminado! La palabra era: ${palabraObjetivo}`;
+        
+        setTimeout(() => {
+            alert(mensaje);
+            document.querySelector('.palabra-correcta-container').style.display = 'block';
+            document.getElementById('palabra-correcta').textContent = palabraObjetivo;
+            
+            const jugarDeNuevo = confirm('¿Quieres jugar otra vez?');
+            if (jugarDeNuevo) {
+                reiniciarJuego();
+            } else {
+                input.disabled = true;
+                confirmarBtn.disabled = true;
+                borrarBtn.disabled = true;
+            }
+        }, 500);
     }
 
     function updateChart(probabilidades) {
         if (!probabilityChart) return;
-
+    
+        // Get top 15 most probable words
         const topPalabras = Array.from(probabilidades.entries())
             .sort(([,a], [,b]) => b - a)
-            .slice(0, 10);
-
+            .slice(0, 15);
+    
         probabilityChart.data.labels = topPalabras.map(([palabra]) => palabra);
         probabilityChart.data.datasets[0].data = topPalabras.map(([,prob]) => prob);
+    
+        const colors = getChartThemeColors();
+        probabilityChart.data.datasets[0].backgroundColor = colors.backgroundColor;
+        probabilityChart.data.datasets[0].borderColor = colors.borderColor;
+        probabilityChart.options.scales.x.grid.color = colors.gridColor;
+        probabilityChart.options.scales.y.ticks.color = colors.textColor;
+        probabilityChart.options.scales.x.ticks.color = colors.textColor;
+    
         probabilityChart.update();
     }
-
-    initializeChart(); // Add this line
 });

@@ -258,8 +258,9 @@ body {
 
 .stats-row {
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 5px;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
     padding: 2px 5px;
     background-color: rgba(var(--border-color-rgb), 0.1);
 }
@@ -509,4 +510,40 @@ body {
         position: static;
         margin-top: 20px;
     }
+}
+
+/* Add to tablero.css */
+.letra-prob-table {
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+.letra-prob-table th,
+.letra-prob-table td {
+    text-align: center;
+    border-color: var(--border-color);
+    padding: 0.5rem;
+}
+
+.letra-prob-table th {
+    background-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.prob-cell {
+    position: relative;
+}
+
+.prob-value {
+    font-size: 0.8rem;
+}
+
+.prob-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background-color: #6aaa64;
+    opacity: 0.5;
+    transition: width 0.3s ease;
 }
