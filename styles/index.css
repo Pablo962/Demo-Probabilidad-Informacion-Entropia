@@ -1,0 +1,111 @@
+:root {
+    --bg-color: #ffffff;
+    --text-color: #000000;
+    --btn-color: #00ff00;
+}
+
+[data-theme="dark"] {
+    --bg-color: #121213;
+    --text-color: #ffffff;
+    --btn-color: #00ff00;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-align: center;
+    color: var(--text-color);
+}
+
+.btn-start {
+    background-color: var(--btn-color);
+    border: none;
+    color: var(--bg-color);
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+}
+
+.btn-start:hover {
+    transform: scale(1.05);
+    background-color: var(--btn-color);
+    filter: brightness(110%);
+}
+
+
+.nav-buttons {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    z-index: 1000;
+}
+
+.nav-button {
+    background: none;
+    border: none;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.nav-button:hover {
+    transform: scale(1.1);
+}
+
+.nav-button i {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.nav-button:hover i {
+    transform: scale(1.1);
+}
+
+.github-link:hover {
+    color: #00ff00;
+}
+
+
+[data-theme="dark"] .modal-content {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .card {
+    background-color: #1a1a1b;
+    border-color: #2f2f2f;
+}
+
+[data-theme="dark"] .list-group-item {
+    background-color: #1a1a1b;
+    color: var(--text-color);
+    border-color: #2f2f2f;
+}
+
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer {
+    border-color: #2f2f2f;
+}
+
+[data-theme="dark"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.button-container {
+    display: flex;
+    gap: 10px; 
+}

@@ -43,16 +43,16 @@ const PALABRAS = [
     "VELAR", "VIEJO", "VILLA", "VINOS", "YERNO", "YOGUR", "ZORRO"
 ];
 
-// Función para obtener una palabra aleatoria
+
 function obtenerPalabraAleatoria() {
     const indice = Math.floor(Math.random() * PALABRAS.length);
     return PALABRAS[indice];
 }
 
-// Función para verificar si una palabra existe en el diccionario
+
 function existePalabra(palabra) {
     return PALABRAS.includes(palabra.toUpperCase());
 }
 
-// Exportar las funciones y el array
+
 export { PALABRAS, obtenerPalabraAleatoria, existePalabra }; 

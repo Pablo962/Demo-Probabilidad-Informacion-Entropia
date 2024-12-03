@@ -14,20 +14,29 @@
 </head>
 
 <body data-theme="light">
-    <button class="theme-toggle" onclick="toggleTheme()">
-        <i class="fas fa-moon"></i> <!-- Puedes usar Font Awesome para los íconos -->
-    </button>
+    <div class="d-flex justify-content-center align-items-center gap-2">
+        <a href="https://github.com/xKrieg1/Demo-Probabilidad-Informacion-Entropia" class="nav-button github-link" target="_blank" rel="noopener noreferrer">
+            <i class="fab fa-github"></i>
+        </a>
+        <button class="nav-button instructions-toggle">
+            <i class="fas fa-question-circle"></i>
+        </button>
+        <button class="nav-button theme-toggle" onclick="toggleTheme()">
+            <i class="fas fa-moon"></i>
+        </button>
+    </div>
+    
     <div class="container-fluid mt-4">
         <h1 class="mb-4 text-center">Tablero</h1>
         
         <div class="row">
-            <!-- Left Column: Game Board and Input -->
+        
             <div class="col-lg-6">
-                <!-- Game Board Section -->
+                
                 <div class="row justify-content-center mb-4">
                     <div class="col-md-10">
                         <div class="tablero">
-                            <!-- Existing tablero-row structure stays the same -->
+                            
                             <!-- Fila 1 -->
                             <div class="tablero-row">
                                 <div class="col">
@@ -140,7 +149,7 @@
                     </div>
                 </div>
 
-                <!-- Input Section -->
+            
                 <div class="row justify-content-center mb-4">
                     <div class="col-md-10">
                         <div class="input-group">
@@ -159,7 +168,7 @@
                     </div>
                 </div>
 
-                <!-- Words Counter -->
+                
                 <div class="row justify-content-center">
                     <div class="col-md-10">
                         <div class="stats-container text-center">
@@ -170,29 +179,30 @@
                     </div>
                 </div>
 
-                <!-- Stats Row (Horizontal Layout) -->
-                <div class="row mt-4 d-flex justify-content-center">
-                    <div class="col-md-4 d-flex flex-column align-items-center">
+                
+                <div class="row mb-4 d-flex flex-row justify-content-center">
+                    <div class="col-md-4 d-none flex-column align-items-center ">
                         <div class="stats-card text-center">
                             <h4 class="stats-title">Probabilidad</h4>
                             <div class="stats-content" id="probabilidades-container"></div>
                         </div>
                     </div>
-                    <div class="col-md-4 d-flex flex-column align-items-center">
+                    <div class="col-md-4 d-flex flex-row align-items-center gap-2">
                         <div class="stats-card text-center">
                             <h4 class="stats-title">Información</h4>
                             <div class="stats-content" id="informacion-container"></div>
                         </div>
                     </div>
-                    <div class="col-md-4 d-flex flex-column align-items-center">
+                    <div class="col-md-4 d-flex flex-row align-items-center gap-2">
                         <div class="stats-card text-center">
                             <h4 class="stats-title">Entropía</h4>
                             <div class="stats-content" id="entropia-container"></div>
                         </div>
                     </div>
+                    
                 </div>
 
-                <!-- Add after existing stats row -->
+                
                 <div class="row mt-4">
                     <div class="col-12">
                         <div class="stats-card">
@@ -217,7 +227,7 @@
                 </div>
             </div>
 
-            <!-- Right Column: Chart -->
+            
             <div class="col-lg-6">
                 <div class="chart-wrapper">
                     <div class="chart-container">
@@ -233,9 +243,66 @@
             </div>
         </div>
     </div>
-
-    <!-- Add these CSS styles to tablero.css -->
     
+
+    <div class="modal fade" id="instructionsModal" tabindex="-1" aria-labelledby="instructionsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="instructionsModalLabel">Instrucciones del Juego</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- Instrucciones básicas -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-gamepad me-2"></i>Cómo Jugar</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ol class="list-group list-group-flush list-group-numbered">
+                                        <li class="list-group-item">Intenta adivinar la palabra de 5 letras</li>
+                                        <li class="list-group-item">Las letras en <span class="text-success">verde</span> están en la posición correcta</li>
+                                        <li class="list-group-item">Las letras en <span class="text-warning">amarillo</span> están en la palabra pero en otra posición</li>
+                                        <li class="list-group-item">Las letras en <span class="text-secondary">gris</span> no están en la palabra</li>
+                                        <li class="list-group-item">Tienes 6 intentos para adivinar la palabra</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Explicación de gráficas -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fas fa-chart-bar me-2"></i>Gráficas y Estadísticas</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item">
+                                            <h6><i class="fas fa-calculator me-2"></i>Probabilidad por Letra</h6>
+                                            <p>Muestra la probabilidad de cada letra en cada posición basada en las palabras posibles restantes.</p>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <h6><i class="fas fa-info-circle me-2"></i>Información</h6>
+                                            <p>Indica cuánta información proporciona cada letra en bits (-log₂ de la probabilidad).</p>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <h6><i class="fas fa-random me-2"></i>Entropía</h6>
+                                            <p>Mide la incertidumbre promedio de las letras en cada posición (H = -Σ P(x) * log₂(P(x))).</p>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Bootstrap JS y Popper.js -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>

@@ -4,7 +4,7 @@ export function calcularProbabilidades(palabrasPosibles) {
     const probabilidadesPorPosicion = Array(5).fill().map(() => ({}));
     const probabilidadesPorPalabra = new Map();
     
-    // Calculate letter frequencies per position
+    
     palabrasPosibles.forEach(palabra => {
         palabra.split('').forEach((letra, posicion) => {
             probabilidadesPorPosicion[posicion][letra] = 
@@ -12,14 +12,14 @@ export function calcularProbabilidades(palabrasPosibles) {
         });
     });
 
-    // Convert to probabilities
+    
     probabilidadesPorPosicion.forEach(posicion => {
         Object.entries(posicion).forEach(([letra, freq]) => {
             posicion[letra] = freq / totalPalabras;
         });
     });
 
-    // Calculate word probabilities using position-specific letter probabilities
+    
     palabrasPosibles.forEach(palabra => {
         let probabilidadPalabra = 1.0;
         palabra.split('').forEach((letra, posicion) => {
@@ -28,7 +28,7 @@ export function calcularProbabilidades(palabrasPosibles) {
         probabilidadesPorPalabra.set(palabra, probabilidadPalabra);
     });
 
-    // Normalize probabilities
+    
     const sumTotal = Array.from(probabilidadesPorPalabra.values())
         .reduce((a, b) => a + b, 0);
     
