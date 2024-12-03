@@ -1,6 +1,8 @@
 import { PALABRAS, obtenerPalabraAleatoria, existePalabra } from './palabras.js';
 import { calcularProbabilidades, calcularInformacion, calcularEntropia } from './calculos.js';
 
+let positionProbabilityChart = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     // Variables initialization
     const themeToggle = document.querySelector('.theme-toggle');
@@ -16,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize game
     console.log('Palabra a adivinar:', palabraObjetivo);
     initializeChart();
+    initializePositionChart();
     loadSavedTheme();
 
     // Event Listeners
@@ -60,13 +63,16 @@ document.addEventListener('DOMContentLoaded', function() {
             resultado.letrasIncorrectas
         );
 
+        // Actualizar stats
         document.getElementById('palabras-coincidentes').textContent = palabrasCoincidentes.length;
         actualizarEstadisticas(palabrasCoincidentes);
 
+        // Limpiar input
         input.value = '';
         input.classList.remove('is-invalid');
         confirmarBtn.disabled = true;
-        
+
+        // Verificar fin del juego
         if (resultado.esGanador || resultado.esFinal) {
             finalizarJuego(resultado.esGanador);
         } else {
@@ -83,7 +89,9 @@ document.addEventListener('DOMContentLoaded', function() {
         themeIcon.classList.toggle('fa-moon');
         themeIcon.classList.toggle('fa-sun');
         
+        // Update charts and table
         updateChartTheme();
+        actualizarTablaProbabilidades(calcularProbabilidades(PALABRAS).porPosicion);
         localStorage.setItem('theme', newTheme);
     });
 
@@ -100,19 +108,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateChartTheme() {
-        if (!probabilityChart) return;
+        if (!probabilityChart || !positionProbabilityChart) return;
         
         const colors = getChartThemeColors();
         
-        probabilityChart.options.scales.y.grid.color = colors.gridColor;
-        probabilityChart.options.scales.x.grid.color = colors.gridColor;
-        probabilityChart.options.scales.y.ticks.color = colors.textColor;
-        probabilityChart.options.scales.x.ticks.color = colors.textColor;
-        probabilityChart.options.plugins.legend.labels.color = colors.textColor;
-        probabilityChart.data.datasets[0].backgroundColor = colors.backgroundColor;
-        probabilityChart.data.datasets[0].borderColor = colors.borderColor;
-        
-        probabilityChart.update();
+        // Update both charts
+        [probabilityChart, positionProbabilityChart].forEach(chart => {
+            chart.options.scales.y.grid.color = colors.gridColor;
+            chart.options.scales.x.grid.color = colors.gridColor;
+            chart.options.scales.y.ticks.color = colors.textColor;
+            chart.options.scales.x.ticks.color = colors.textColor;
+            chart.options.plugins.legend.labels.color = colors.textColor;
+            chart.update();
+        });
     }
 
     function getChartThemeColors() {
@@ -128,15 +136,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Game functions
     function reiniciarJuego() {
+        // Get new random word and reset state
         palabraObjetivo = obtenerPalabraAleatoria();
         filaActual = 0;
         
+        // Reset UI controls
         input.disabled = false;
         confirmarBtn.disabled = true;
         borrarBtn.disabled = false;
         input.value = '';
         input.classList.remove('is-invalid');
+        document.querySelector('.invalid-feedback').style.display = 'none';
         
+        // Clear board
         filas.forEach(fila => {
             const celdas = fila.querySelectorAll('.tablero-celda');
             celdas.forEach(celda => {
@@ -145,22 +157,40 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        document.querySelector('.palabra-correcta-container').style.display = 'none';
-        document.getElementById('palabra-correcta').textContent = '';
-        document.getElementById('palabras-coincidentes').textContent = '0';
+        // Reset UI elements
+        const palabraCorrectaContainer = document.querySelector('.palabra-correcta-container');
+        if (palabraCorrectaContainer) {
+            palabraCorrectaContainer.style.display = 'none';
+            document.getElementById('palabra-correcta').textContent = '';
+        }
         
+        // Reset stats
+        document.getElementById('palabras-coincidentes').textContent = PALABRAS.length.toString();
+        
+        // Clear stats containers
         ['probabilidades-container', 'informacion-container', 'entropia-container'].forEach(id => {
             document.getElementById(id).innerHTML = '';
         });
         
+        // Clear probability table
         const probTable = document.getElementById('letra-prob-table').getElementsByTagName('tbody')[0];
-        probTable.innerHTML = '';
+        if (probTable) {
+            probTable.innerHTML = '';
+        }
         
+        // Reset and update chart
         if (probabilityChart) {
             probabilityChart.data.labels = [];
             probabilityChart.data.datasets[0].data = [];
             probabilityChart.update();
         }
+        if (positionProbabilityChart) {
+            positionProbabilityChart.data.datasets = [];
+            positionProbabilityChart.update();
+        }
+        
+        // Initialize stats with full word list
+        actualizarEstadisticas(PALABRAS);
         
         console.log('Nueva palabra a adivinar:', palabraObjetivo);
         input.focus();
@@ -216,6 +246,61 @@ document.addEventListener('DOMContentLoaded', function() {
                         callbacks: {
                             label: (context) => {
                                 return `Probabilidad: ${(context.raw * 100).toFixed(2)}%`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function initializePositionChart() {
+        const ctx = document.getElementById('positionProbabilityChart').getContext('2d');
+        const colors = getChartThemeColors();
+        
+        positionProbabilityChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Pos 1', 'Pos 2', 'Pos 3', 'Pos 4', 'Pos 5'],
+                datasets: []  // Will be populated dynamically
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 500 },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1,
+                        ticks: {
+                            callback: value => `${(value * 100).toFixed(1)}%`,
+                            color: colors.textColor
+                        },
+                        grid: {
+                            color: colors.gridColor
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: colors.textColor
+                        },
+                        grid: {
+                            color: colors.gridColor
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            color: colors.textColor,
+                            boxWidth: 12
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                return `${context.dataset.label}: ${(context.raw * 100).toFixed(2)}%`;
                             }
                         }
                     }
@@ -290,6 +375,7 @@ document.addEventListener('DOMContentLoaded', function() {
         actualizarEntropia(resultados.porPosicion);
         actualizarTablaProbabilidades(resultados.porPosicion);
         updateChart(resultados.porPalabra);
+        updatePositionChart(resultados.porPosicion);
     }
     
     function actualizarProbabilidades(probabilidades) {
@@ -380,18 +466,45 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Nueva función para preguntar si quiere jugar de nuevo
-    function preguntarNuevaPartida() {
+    function finalizarJuego(ganador) {
+        // Disable controls
+        input.disabled = true;
+        confirmarBtn.disabled = true;
+        borrarBtn.disabled = true;
+
+        // Prepare message based on result
+        const mensaje = ganador ? 
+            '¡Felicidades, adivinaste la palabra!' : 
+            `¡Juego terminado! La palabra secreta era: ${palabraObjetivo}`;
+
+        // Show message and correct word with delay
         setTimeout(() => {
+            // Show alert with result
+            alert(mensaje);
+            
+            // Always show correct word container
+            const palabraCorrectaContainer = document.querySelector('.palabra-correcta-container');
+            if (!palabraCorrectaContainer) {
+                // Create container if it doesn't exist
+                const container = document.createElement('div');
+                container.className = 'palabra-correcta-container';
+                container.innerHTML = `
+                    <label class="palabra-correcta-label">
+                        La palabra correcta era: <span id="palabra-correcta" class="palabra-correcta"></span>
+                    </label>
+                `;
+                document.querySelector('.tablero').after(container);
+            }
+            
+            palabraCorrectaContainer.style.display = 'block';
+            document.getElementById('palabra-correcta').textContent = palabraObjetivo;
+            
+            // Ask to play again
             const jugarDeNuevo = confirm('¿Quieres jugar otra vez?');
             if (jugarDeNuevo) {
                 reiniciarJuego();
-            } else {
-                // Deshabilitar controles
-                input.disabled = true;
-                confirmarBtn.disabled = true;
-                borrarBtn.disabled = true;
             }
-        }, 100); // Pequeño delay para mejor UX
+        }, 500);
     }
 
     function actualizarTablaProbabilidades(probabilidadesPorPosicion) {
@@ -404,6 +517,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         const letrasOrdenadas = Array.from(letras).sort();
+        const isDark = document.body.getAttribute('data-theme') === 'dark';
         
         letrasOrdenadas.forEach(letra => {
             const row = document.createElement('tr');
@@ -412,10 +526,12 @@ document.addEventListener('DOMContentLoaded', function() {
             for (let pos = 0; pos < 5; pos++) {
                 const prob = probabilidadesPorPosicion[pos][letra] || 0;
                 const width = Math.round(prob * 100);
+                const barColor = isDark ? 'rgba(106, 170, 100, 0.3)' : 'rgba(106, 170, 100, 0.2)';
+                
                 row.innerHTML += `
                     <td class="prob-cell">
                         <div class="prob-value">${(prob * 100).toFixed(1)}%</div>
-                        <div class="prob-bar" style="width: ${width}%"></div>
+                        <div class="prob-bar" style="width: ${width}%; background-color: ${barColor};"></div>
                     </td>
                 `;
             }
@@ -425,22 +541,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function finalizarJuego(ganador) {
+        // Deshabilitar controles durante el mensaje
+        input.disabled = true;
+        confirmarBtn.disabled = true;
+        borrarBtn.disabled = true;
+
+        // Preparar mensaje según resultado
         const mensaje = ganador ? 
-            '¡Felicitaciones! ¡Has ganado!' : 
-            `¡Juego terminado! La palabra era: ${palabraObjetivo}`;
-        
+            '¡Felicidades, adivinaste la palabra!' : 
+            `Has usado todos los intentos. La palabra secreta era: ${palabraObjetivo}`;
+
+        // Mostrar mensaje y palabra correcta con delay
         setTimeout(() => {
-            alert(mensaje);
+            // Mostrar palabra correcta
             document.querySelector('.palabra-correcta-container').style.display = 'block';
             document.getElementById('palabra-correcta').textContent = palabraObjetivo;
             
-            const jugarDeNuevo = confirm('¿Quieres jugar otra vez?');
-            if (jugarDeNuevo) {
+            // Preguntar si quiere jugar de nuevo
+            if (confirm(mensaje + '\n\n¿Quieres jugar otra vez?')) {
                 reiniciarJuego();
-            } else {
-                input.disabled = true;
-                confirmarBtn.disabled = true;
-                borrarBtn.disabled = true;
             }
         }, 500);
     }
@@ -464,5 +583,38 @@ document.addEventListener('DOMContentLoaded', function() {
         probabilityChart.options.scales.x.ticks.color = colors.textColor;
     
         probabilityChart.update();
+    }
+
+    function updatePositionChart(probabilidadesPorPosicion) {
+        if (!positionProbabilityChart) return;
+    
+        // Get all unique letters
+        const letras = new Set();
+        probabilidadesPorPosicion.forEach(pos => {
+            Object.keys(pos).forEach(letra => letras.add(letra));
+        });
+    
+        // Create datasets for each letter
+        const datasets = Array.from(letras).map(letra => {
+            const color = `hsl(${Math.random() * 360}, 70%, 50%)`;
+            return {
+                label: letra,
+                data: probabilidadesPorPosicion.map(pos => pos[letra] || 0),
+                backgroundColor: color,
+                borderColor: color,
+                borderWidth: 1
+            };
+        });
+    
+        // Sort datasets by average probability
+        datasets.sort((a, b) => {
+            const avgA = a.data.reduce((sum, val) => sum + val, 0) / a.data.length;
+            const avgB = b.data.reduce((sum, val) => sum + val, 0) / b.data.length;
+            return avgB - avgA;
+        });
+    
+        // Take top 10 letters for clarity
+        positionProbabilityChart.data.datasets = datasets.slice(0, 10);
+        positionProbabilityChart.update();
     }
 });

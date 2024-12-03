@@ -171,21 +171,21 @@
                 </div>
 
                 <!-- Stats Row (Horizontal Layout) -->
-                <div class="row mt-4">
-                    <div class="col-md-4">
-                        <div class="stats-card">
+                <div class="row mt-4 d-flex justify-content-center">
+                    <div class="col-md-4 d-flex flex-column align-items-center">
+                        <div class="stats-card text-center">
                             <h4 class="stats-title">Probabilidad</h4>
                             <div class="stats-content" id="probabilidades-container"></div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="stats-card">
+                    <div class="col-md-4 d-flex flex-column align-items-center">
+                        <div class="stats-card text-center">
                             <h4 class="stats-title">Información</h4>
                             <div class="stats-content" id="informacion-container"></div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="stats-card">
+                    <div class="col-md-4 d-flex flex-column align-items-center">
+                        <div class="stats-card text-center">
                             <h4 class="stats-title">Entropía</h4>
                             <div class="stats-content" id="entropia-container"></div>
                         </div>
@@ -222,6 +222,12 @@
                 <div class="chart-wrapper">
                     <div class="chart-container">
                         <canvas id="probabilityChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-wrapper mt-4">
+                    <h4 class="stats-title">Probabilidad por Posición</h4>
+                    <div class="chart-container">
+                        <canvas id="positionProbabilityChart"></canvas>
                     </div>
                 </div>
             </div>

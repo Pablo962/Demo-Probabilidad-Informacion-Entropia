@@ -412,11 +412,12 @@ body {
     border-radius: 8px;
     padding: 15px;
     margin-bottom: 20px;
-    height: 100%;
+    width: 100%;
 }
 
 .stats-title {
     color: var(--text-color);
+    font-weight: bold;
     font-size: 1.1rem;
     text-align: center;
     margin-bottom: 15px;
@@ -425,7 +426,7 @@ body {
 }
 
 .stats-content {
-    min-height: 200px;
+    min-height: 50px;
     overflow-y: auto;
 }
 
@@ -516,6 +517,7 @@ body {
 .letra-prob-table {
     color: var(--text-color);
     border-color: var(--border-color);
+    background-color: var(--cell-bg);
 }
 
 .letra-prob-table th,
@@ -523,6 +525,7 @@ body {
     text-align: center;
     border-color: var(--border-color);
     padding: 0.5rem;
+    background-color: var(--cell-bg);
 }
 
 .letra-prob-table th {
@@ -532,18 +535,73 @@ body {
 
 .prob-cell {
     position: relative;
+    color: var(--text-color);
 }
 
 .prob-value {
     font-size: 0.8rem;
+    position: relative;
+    z-index: 1;
+    color: var(--text-color);
 }
 
 .prob-bar {
     position: absolute;
     bottom: 0;
     left: 0;
-    height: 3px;
-    background-color: #6aaa64;
-    opacity: 0.5;
+    height: 100%;
+    background-color: rgba(106, 170, 100, 0.2);
     transition: width 0.3s ease;
+    z-index: 0;
+}
+
+[data-theme="dark"] .prob-bar {
+    background-color: rgba(106, 170, 100, 0.3);
+}
+
+[data-theme="dark"] .letra-prob-table {
+    background-color: var(--cell-bg);
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .letra-prob-table th {
+    background-color: var(--border-color);
+    color: #ffffff; /* Make text white in dark mode */
+}
+
+[data-theme="dark"] .letra-prob-table td:first-child {
+    color: #ffffff; /* Make letter column text white in dark mode */
+    background-color: var(--border-color); /* Match header background */
+}
+
+/* Estilo general de la tabla */
+.table {
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    background-color: var(--cell-bg);
+}
+
+.table th, .table td {
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    text-align: center;
+}
+
+/* Remove redundant dark mode styles */
+body.dark-mode .table,
+body.dark-mode .table th,
+body.dark-mode .table td {
+    /* Remove these as we're using CSS variables */
+    color: inherit;
+    background-color: inherit;
+    border-color: inherit;
+}
+
+body.dark-mode .stats-card {
+    background-color: #222; /* Fondo oscuro para la tarjeta */
+    color: #fff; /* Texto blanco */
+}
+
+body.dark-mode .stats-title {
+    color: #fff; /* Asegura que el título también sea blanco */
 }
