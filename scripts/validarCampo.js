@@ -136,19 +136,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Game functions
     function reiniciarJuego() {
-        // Get new random word and reset state
+        // Reset game state
         palabraObjetivo = obtenerPalabraAleatoria();
         filaActual = 0;
         
         // Reset UI controls
-        input.disabled = false;
+        input.disabled = false; 
         confirmarBtn.disabled = true;
         borrarBtn.disabled = false;
         input.value = '';
         input.classList.remove('is-invalid');
         document.querySelector('.invalid-feedback').style.display = 'none';
         
-        // Clear board
+        // Clear game board
         filas.forEach(fila => {
             const celdas = fila.querySelectorAll('.tablero-celda');
             celdas.forEach(celda => {
@@ -157,28 +157,19 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Reset UI elements
-        const palabraCorrectaContainer = document.querySelector('.palabra-correcta-container');
-        if (palabraCorrectaContainer) {
-            palabraCorrectaContainer.style.display = 'none';
-            document.getElementById('palabra-correcta').textContent = '';
-        }
-        
         // Reset stats
-        document.getElementById('palabras-coincidentes').textContent = PALABRAS.length.toString();
+        document.getElementById('palabras-coincidentes').textContent = PALABRAS.length;
         
-        // Clear stats containers
+        // Clear stats displays
         ['probabilidades-container', 'informacion-container', 'entropia-container'].forEach(id => {
             document.getElementById(id).innerHTML = '';
         });
         
-        // Clear probability table
+        // Reset probability table
         const probTable = document.getElementById('letra-prob-table').getElementsByTagName('tbody')[0];
-        if (probTable) {
-            probTable.innerHTML = '';
-        }
-        
-        // Reset and update chart
+        probTable.innerHTML = '';
+
+        // Reset charts
         if (probabilityChart) {
             probabilityChart.data.labels = [];
             probabilityChart.data.datasets[0].data = [];
@@ -188,12 +179,14 @@ document.addEventListener('DOMContentLoaded', function() {
             positionProbabilityChart.data.datasets = [];
             positionProbabilityChart.update();
         }
-        
+
         // Initialize stats with full word list
         actualizarEstadisticas(PALABRAS);
         
-        console.log('Nueva palabra a adivinar:', palabraObjetivo);
+        // Focus input field
         input.focus();
+        
+        console.log('Nueva palabra a adivinar:', palabraObjetivo);
     }
 
     // Initialize chart on load
@@ -467,41 +460,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Nueva función para preguntar si quiere jugar de nuevo
     function finalizarJuego(ganador) {
-        // Disable controls
+        // Disable controls immediately
         input.disabled = true;
         confirmarBtn.disabled = true;
         borrarBtn.disabled = true;
 
-        // Prepare message based on result
+        // Prepare result message
         const mensaje = ganador ? 
-            '¡Felicidades, adivinaste la palabra!' : 
-            `¡Juego terminado! La palabra secreta era: ${palabraObjetivo}`;
+            '¡Felicidades! Has adivinado la palabra!' : 
+            `¡Juego terminado! La palabra era: ${palabraObjetivo}`;
 
-        // Show message and correct word with delay
+        // Show results with slight delay
         setTimeout(() => {
-            // Show alert with result
+            // Show result alert
             alert(mensaje);
             
-            // Always show correct word container
-            const palabraCorrectaContainer = document.querySelector('.palabra-correcta-container');
-            if (!palabraCorrectaContainer) {
-                // Create container if it doesn't exist
-                const container = document.createElement('div');
-                container.className = 'palabra-correcta-container';
-                container.innerHTML = `
-                    <label class="palabra-correcta-label">
-                        La palabra correcta era: <span id="palabra-correcta" class="palabra-correcta"></span>
-                    </label>
-                `;
-                document.querySelector('.tablero').after(container);
-            }
-            
-            palabraCorrectaContainer.style.display = 'block';
-            document.getElementById('palabra-correcta').textContent = palabraObjetivo;
-            
             // Ask to play again
-            const jugarDeNuevo = confirm('¿Quieres jugar otra vez?');
-            if (jugarDeNuevo) {
+            if (confirm('¿Quieres jugar otra vez?')) {
                 reiniciarJuego();
             }
         }, 500);
@@ -538,30 +513,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             table.appendChild(row);
         });
-    }
-
-    function finalizarJuego(ganador) {
-        // Deshabilitar controles durante el mensaje
-        input.disabled = true;
-        confirmarBtn.disabled = true;
-        borrarBtn.disabled = true;
-
-        // Preparar mensaje según resultado
-        const mensaje = ganador ? 
-            '¡Felicidades, adivinaste la palabra!' : 
-            `Has usado todos los intentos. La palabra secreta era: ${palabraObjetivo}`;
-
-        // Mostrar mensaje y palabra correcta con delay
-        setTimeout(() => {
-            // Mostrar palabra correcta
-            document.querySelector('.palabra-correcta-container').style.display = 'block';
-            document.getElementById('palabra-correcta').textContent = palabraObjetivo;
-            
-            // Preguntar si quiere jugar de nuevo
-            if (confirm(mensaje + '\n\n¿Quieres jugar otra vez?')) {
-                reiniciarJuego();
-            }
-        }, 500);
     }
 
     function updateChart(probabilidades) {
