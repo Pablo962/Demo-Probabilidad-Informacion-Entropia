@@ -6,6 +6,16 @@
     --title-color: #1a1a1b;
     --cell-bg: #ffffff;
     --cell-border: #d3d6da;
+    --input-bg: #ffffff;
+    --input-text: #000000;
+    --input-border: #ced4da;
+    --btn-text: #000000;
+    --btn-border: #ced4da;
+    --modal-bg: #ffffff;
+    --modal-text: #000000;
+    --modal-border: #d3d6da;
+    --modal-header-bg: #f8f9fa;
+    --modal-btn-close: #000000;
 }
 
 [data-theme="dark"] {
@@ -16,6 +26,16 @@
     --title-color: #ffffff;
     --cell-bg: #121213;
     --cell-border: #3a3a3c;
+    --input-bg: #1a1a1b;
+    --input-text: #ffffff;
+    --input-border: #2f2f2f;
+    --btn-text: #ffffff;
+    --btn-border: #2f2f2f;
+    --modal-bg: #121213;
+    --modal-text: #ffffff;
+    --modal-border: #3a3a3c;
+    --modal-header-bg: #1a1a1b;
+    --modal-btn-close: #ffffff;
 }
 
 body {
@@ -97,32 +117,40 @@ body {
 
 .palabra-input {
     text-transform: uppercase;
-    background-color: var(--cell-bg);
-    color: var(--text-color);
-    border-color: var(--border-color);
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    border-color: var(--input-border);
+    transition: all 0.3s ease;
 }
 
 .palabra-input:focus {
-    background-color: var(--cell-bg);
-    color: var(--text-color);
-    border-color: var(--border-color);
-    box-shadow: none;
+    background-color: var(--input-bg);
+    color: var(--input-text);
+    border-color: #6aaa64;
+    box-shadow: 0 0 0 0.25rem rgba(106, 170, 100, 0.25);
+}
+
+.palabra-input::placeholder {
+    color: #6c757d;
 }
 
 .btn-outline-danger,
 .btn-outline-success {
-    border-color: var(--border-color);
-    color: var(--text-color);
+    border-color: var(--btn-border);
+    color: var(--btn-text);
+    transition: all 0.3s ease;
 }
 
 .btn-outline-danger:hover {
     background-color: #dc3545;
     color: white;
+    border-color: #dc3545;
 }
 
 .btn-outline-success:hover {
-    background-color: #198754;
+    background-color: #6aaa64;
     color: white;
+    border-color: #6aaa64;
 }
 
 .invalid-feedback {
@@ -658,4 +686,148 @@ body.dark-mode .stats-title {
 [data-theme="dark"] .card-header {
     background-color: #2f2f2f;
     border-bottom-color: #2f2f2f;
+}
+
+/* Estilos para el modo oscuro del modal */
+[data-theme="dark"] .modal-content {
+    background-color: #121213;
+    color: #ffffff;
+    border-color: #2f2f2f;
+}
+
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer {
+    border-color: #2f2f2f;
+}
+
+[data-theme="dark"] .card {
+    background-color: #1a1a1b;
+    border-color: #2f2f2f;
+}
+
+[data-theme="dark"] .list-group-item {
+    background-color: #1a1a1b;
+    color: #ffffff;
+    border-color: #2f2f2f;
+}
+
+[data-theme="dark"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Estilos para el input en modo oscuro */
+[data-theme="dark"] .palabra-input {
+    background-color: #1a1a1b;
+    color: #ffffff;
+    border-color: #2f2f2f;
+}
+
+[data-theme="dark"] .palabra-input:focus {
+    background-color: #1a1a1b;
+    color: #ffffff;
+    border-color: #6aaa64;
+    box-shadow: 0 0 0 0.25rem rgba(106, 170, 100, 0.25);
+}
+
+[data-theme="dark"] .palabra-input::placeholder {
+    color: #6c757d;
+}
+
+/* Estilos para los botones del input en modo oscuro */
+[data-theme="dark"] .btn-outline-success,
+[data-theme="dark"] .btn-outline-danger {
+    color: #ffffff;
+    border-color: #2f2f2f;
+}
+
+[data-theme="dark"] .btn-outline-success:hover {
+    background-color: #6aaa64;
+    border-color: #6aaa64;
+}
+
+[data-theme="dark"] .btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+/* Modal Styles */
+.modal-content {
+    background-color: var(--modal-bg);
+    color: var(--modal-text);
+    border-color: var(--modal-border);
+    transition: all 0.3s ease;
+}
+
+.modal-header {
+    background-color: var(--modal-header-bg);
+    border-bottom-color: var(--modal-border);
+}
+
+.modal-footer {
+    border-top-color: var(--modal-border);
+}
+
+.modal-title {
+    color: var(--modal-text);
+}
+
+.btn-close {
+    color: var(--modal-btn-close);
+}
+
+[data-theme="dark"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.modal .btn {
+    color: var(--modal-text);
+    border-color: var(--modal-border);
+}
+
+.modal .list-group-item {
+    background-color: var(--modal-bg);
+    color: var(--modal-text);
+    border-color: var(--modal-border);
+}
+
+/* Modal base styles */
+.modal {
+    color: var(--modal-text);
+}
+
+.modal-content {
+    background-color: var(--modal-bg);
+    color: var(--modal-text);
+    border-color: var(--modal-border);
+}
+
+.modal-header, 
+.modal-body,
+.modal-footer {
+    color: var(--modal-text) !important;
+    background-color: var(--modal-bg);
+}
+
+.modal p,
+.modal span,
+.modal h1,
+.modal h2,
+.modal h3,
+.modal h4,
+.modal h5,
+.modal h6,
+.modal .modal-title {
+    color: var(--modal-text) !important;
+}
+
+/* List items in modal */
+.modal .list-group-item {
+    background-color: var(--modal-bg);
+    color: var(--modal-text) !important;
+    border-color: var(--modal-border);
+}
+
+/* Force text color for any Bootstrap overrides */
+[data-theme="dark"] .modal * {
+    color: var(--modal-text) !important;
 }

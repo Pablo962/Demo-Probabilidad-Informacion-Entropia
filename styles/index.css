@@ -79,6 +79,55 @@ body {
     color: #00ff00;
 }
 
+/* Estilos del modal para ambos modos */
+.modal-content {
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    border-color: var(--border-color);
+}
+
+.modal-header,
+.modal-footer {
+    border-color: var(--border-color);
+}
+
+.card {
+    background-color: var(--bg-color);
+    border-color: var(--border-color);
+}
+
+.list-group-item {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+.modal-title {
+    color: var(--text-color);
+}
+
+.card-header {
+    background-color: var(--border-color);
+    border-bottom-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.text-success {
+    color: #6aaa64 !important;
+}
+
+.text-warning {
+    color: #c9b458 !important;
+}
+
+.text-secondary {
+    color: #787c7e !important;
+}
+
+/* Botón de cerrar del modal */
+.btn-close {
+    opacity: 0.8;
+}
 
 [data-theme="dark"] .modal-content {
     background-color: var(--bg-color);
@@ -103,6 +152,18 @@ body {
 
 [data-theme="dark"] .btn-close {
     filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Botón de cerrar en el footer */
+.btn-secondary {
+    background-color: var(--border-color);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--text-color);
+    color: var(--bg-color);
 }
 
 .button-container {
